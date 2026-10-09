@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Absensi 9F Final - Selfie + Auto Email</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+*{box-sizing:border-box;font-family:system-ui}body{background:#050505;color:#fff;padding:12px;margin:0}
+.card{max-width:460px;margin:0 auto;background:#111;border:1px solid #222;border-radius:24px;padding:22px}
+.input{width:100%;padding:13px;background:#000;border:1px solid #333;border-radius:12px;color:#fff;margin:6px 0}
+.btn{padding:14px;border:none;border-radius:12px;font-weight:900;cursor:pointer}
+.btn-cam{width:100%;background:#a855f7;color:#fff;margin-top:8px}
+.btn-hadir{width:48%;background:#00c853;color:#000}.btn-alpa{width:48%;background:#ff1744;color:#fff}
+video,canvas,#preview{width:100%;border-radius:16px;margin-top:10px;border:1px solid #333;background:#000}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>📸 Absensi 9F - FINAL</h2>
+<input id="emailTujuan" class="input" value="agussusanto03510@gmail.com">
+<input id="nama" class="input" placeholder="Nama Lengkap Siswa 9F">
+<button class="btn btn-cam" onclick="bukaKamera()">📷 BUKA KAMERA DEPAN</button>
+<video id="video" autoplay playsinline style="display:none"></video>
+<button id="btnJepret" class="btn btn-cam" style="display:none;background:#00c853" onclick="jepret()">✅ JEPRET</button>
+<canvas id="canvas" style="display:none"></canvas>
+<img id="preview" style="display:none;width:100%;border-radius:16px;margin-top:10px">
+<p id="status" style="text-align:center;font-size:12px;color:#aaa">Belum selfie</p>
+<div style="display:flex;justify-content:space-between;gap:8px">
+<button class="btn btn-hadir" onclick="absen('HADIR')">HADIR</button>
+<button class="btn btn-alpa" onclick="absen('ALPA')">ALPA</button>
+</div>
+<div id="list"></div>
+</div>
+<script>
+const SERVICE_ID="service_tuxod9f";const TEMPLATE_ID="template_uvl0k24";const PUBLIC_KEY="nqr-UuC2vGT8o15Ra";emailjs.init(PUBLIC_KEY);
+let fotoBase64="",stream=null;let data=JSON.parse(localStorage.getItem('absen9Ffinal_v2')||'[]');render();
+async function bukaKamera(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});video.srcObject=stream;video.style.display='block';btnJepret.style.display='block';status.innerText="Kamera aktif..."}catch(e){alert(e.message)}}
+function jepret(){canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);fotoBase64=canvas.toDataURL('image/jpeg',0.6);preview.src=fotoBase64;preview.style.display='block';video.style.display='none';btnJepret.style.display='none';if(stream)stream.getTracks().forEach(t=>t.stop());status.innerText="✅ Selfie oke! Klik HADIR";}
+function absen(st){const nama=document.getElementById('nama').value.trim();const email=document.getElementById('emailTujuan').value.trim();if(!nama||!fotoBase64)return alert('Isi nama & selfie!');const jam=new Date().toLocaleString('id-ID');data.unshift({nama,status:st,jam,foto:fotoBase64,email});localStorage.setItem('absen9Ffinal_v2',JSON.stringify(data));status.innerText="⏳ Mengirim ke "+email+"...";emailjs.send(SERVICE_ID,TEMPLATE_ID,{to_email:email,subject:st+" - 9F - "+nama,nama:nama,kelas:"9F",status:st,jam:jam,message:"Absen "+st+" oleh "+nama+" jam "+jam}).then(()=>{status.innerText="✅ Terkirim ke "+email}).catch(e=>{status.innerText="⚠️ Gagal: "+e.text});render();fotoBase64="";preview.style.display='none';document.getElementById('nama').value="";}
+function render(){list.innerHTML=data.map(d=>`<div style="display:flex;gap:10px;background:#000;border:1px solid #222;border-radius:12px;padding:10px;margin-top:8px;font-size:12px"><img src="${d.foto}" style="width:60px;height:60px;border-radius:10px;object-fit:cover"><div><b>${d.nama}</b><br>${d.jam}<br>${d.status}</div></div>`).join('')}
+</script>
+</body>
+</html> 
